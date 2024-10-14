@@ -1,0 +1,374 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: AWS CloudFormation Template to create DynamoDB tables, Lambda functions, AWS Lex bot, WebSocket API, and SNS for notifications.
+
+Resources:
+  # DynamoDB Tables
+  BookingsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: bookings
+      AttributeDefinitions:
+        - AttributeName: booking_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: booking_id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  DalUsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: DalUsers
+      AttributeDefinitions:
+        - AttributeName: UserID
+          AttributeType: S
+      KeySchema:
+        - AttributeName: UserID
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  LoginStatsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: loginStats
+      AttributeDefinitions:
+        - AttributeName: login_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: login_id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  ReviewsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: reviews
+      AttributeDefinitions:
+        - AttributeName: review_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: review_id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  RoomsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: rooms
+      AttributeDefinitions:
+        - AttributeName: room_number
+          AttributeType: S
+      KeySchema:
+        - AttributeName: room_number
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  ChatTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: chat
+      AttributeDefinitions:
+        - AttributeName: chat_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: chat_id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  # Lambda Functions (Node.js)
+  CaesarAuthenticationFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: CaesarAuthentication
+      Handler: index.handler
+      Runtime: nodejs20.x
+      Code:
+        S3Bucket: dalvacationlambda2
+        S3Key: CaesarAuthentication-71af2710-598d-41ed-b926-fd1baff58362.zip
+      Role: arn:aws:iam::502357995397:role/LabRole
+
+  CaesarCipherAuthenticationFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: CaesarCipherAuthentication
+      Handler: index.handler
+      Runtime: nodejs20.x
+      Code:
+        S3Bucket: dalvacationlambda2
+        S3Key: CaesarCipherAuthentication-4c58731e-4529-4d10-9bb1-8887e5d1f62b.zip
+      Role: arn:aws:iam::502357995397:role/LabRole
+
+  RegisterUserFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: RegisterUserFunction
+      Handler: index.handler
+      Runtime: nodejs20.x
+      Code:
+        S3Bucket: dalvacationlambda2
+        S3Key: RegisterUserFunction-50fddce6-8dff-4e91-8d5d-5ba98bc2c3c5.zip
+      Role: arn:aws:iam::502357995397:role/LabRole
+
+  SecurityQuestionsAuthenticationFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: SecurityQuestionsAuthentication
+      Handler: index.handler
+      Runtime: nodejs20.x
+      Code:
+        S3Bucket: dalvacationlambda2
+        S3Key: securityQuestionsAuthentication-2080faec-fdc3-459d-b728-1e693aa2535d.zip
+      Role: arn:aws:iam::502357995397:role/LabRole
+
+  # Lambda Functions (Python)
+  BookingLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: bookingLambda
+      Handler: index.handler
+      Runtime: python3.12
+      Code:
+        S3Bucket: dalvacationlambda2
+        S3Key: bookingLambda-1799f6ad-9584-42a4-a3e2-4a82e2b19039.zip
+      Role: arn:aws:iam::502357995397:role/LabRole
+
+  CognitoPreSignupFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: cognitoPreSignup
+      Handler: index.handler
+      Runtime: python3.12
+      Code:
+        S3Bucket: dalvacationlambda2
+        S3Key: congnitoPreSignup-fee95ab1-462e-49ae-a583-67bd766f4c7f.zip
+      Role: arn:aws:iam::502357995397:role/LabRole
+
+  CreateReviewFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: createReview
+      Handler: index.handler
+      Runtime: python3.12
+      Code:
+        S3Bucket: dalvacationlambda2
+        S3Key: createReview-d60c53fb-9802-4eab-8cf8-36b9e2739c09.zip
+      Role: arn:aws:iam::502357995397:role/LabRole
+
+  CreateRoomFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: createRoom
+      Handler: index.handler
+      Runtime: python3.12
+      Code:
+        S3Bucket: dalvacationlambda2
+        S3Key: createRoom-fc2a95d0-de10-4a61-8891-5ab1d13a86a7.zip
+      Role: arn:aws:iam::502357995397:role/LabRole
+
+  GetAllBookingsFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: getAllBookings
+      Handler: index.handler
+      Runtime: python3.12
+      Code:
+        S3Bucket: dalvacationlambda2
+        S3Key: getAllBookings-0648d791-2f0d-4fcc-88c9-60a14736c9e0.zip
+      Role: arn:aws:iam::502357995397:role/LabRole
+
+  GetRoomsFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: getRooms
+      Handler: index.handler
+      Runtime: python3.12
+      Code:
+        S3Bucket: dalvacationlambda2
+        S3Key: getRooms-0b4145db-2f7d-4b26-90e1-12b4e7b9904c.zip
+      Role: arn:aws:iam::502357995397:role/LabRole
+
+  GetUserStatsFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: getUserStats
+      Handler: index.handler
+      Runtime: python3.12
+      Code:
+        S3Bucket: dalvacationlambda2
+        S3Key: getUserStats-ffdff1d5-0cb6-43fa-84cc-d92a8cd4898e.zip
+      Role: arn:aws:iam::502357995397:role/LabRole
+
+  ReviewForRoomFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: reviewForRoom
+      Handler: index.handler
+      Runtime: python3.12
+      Code:
+        S3Bucket: dalvacationlambda2
+        S3Key: reviewForRoom-cac1a5ed-cea9-4eda-958b-b5963c26d5f2.zip
+      Role: arn:aws:iam::502357995397:role/LabRole
+
+  SentimentReviewFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: sentimentReview
+      Handler: index.handler
+      Runtime: python3.12
+      Code:
+        S3Bucket: dalvacationlambda2
+        S3Key: sentimentReview-d27e5f1a-fb69-4389-9364-0fa65b8c31c3.zip
+      Role: arn:aws:iam::502357995397:role/LabRole
+      Environment:
+        Variables:
+          GOOGLE_CLOUD_API_KEY: !Ref GoogleCloudApiKey
+
+  UpdateRoomFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: updateRoom
+      Handler: index.handler
+      Runtime: python3.12
+      Code:
+        S3Bucket: dalvacationlambda2
+        S3Key: updateRoom-f2a02e68-9e86-4856-8b79-4fa7353dd53f.zip
+      Role: arn:aws:iam::502357995397:role/LabRole
+
+  # SNS Topic for Notifications
+  BookingNotificationsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: BookingNotifications
+
+  # Lex Bot
+  BookingLexBot:
+    Type: AWS::Lex::Bot
+    Properties:
+      Name: BookingBot
+      Locale: en-US
+      ChildDirected: false
+      Intents:
+        - IntentName: BookRoomIntent
+          IntentVersion: $LATEST
+      ClarificationPrompt:
+        MaxAttempts: 2
+        Messages:
+          - Content: "I didn't quite get that. Can you please repeat?"
+            ContentType: PlainText
+      AbortStatement:
+        Messages:
+          - Content: "Sorry, I can't help with that right now."
+            ContentType: PlainText
+      IdleSessionTTLInSeconds: 300
+
+  # WebSocket API
+  ChatWebSocketAPI:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: ChatWebSocketAPI
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: $request.body.action
+
+  ChatWebSocketRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ChatWebSocketAPI
+      RouteKey: $default
+      Target: !Sub "integrations/${ChatWebSocketIntegration}"
+
+  ChatWebSocketIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ChatWebSocketAPI
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:ChatLambdaFunction"
+      PayloadFormatVersion: 2.0
+
+  # Lex Bot Alias
+  BookingLexBotAlias:
+    Type: AWS::Lex::BotAlias
+    Properties:
+      BotName: BookingBot
+      BotAliasName: Prod
+      BotVersion: "$LATEST"
+
+  # IAM Role for Lambda Functions
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: LambdaExecutionRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:*
+                  - sns:Publish
+                  - logs:*
+                Resource: "*"
+
+  # SSM Parameter for Google Cloud API Key
+  GoogleCloudApiKey:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: GoogleCloudApiKey
+      Type: SecureString
+      Value: YOUR_GOOGLE_CLOUD_API_KEY
+
+Outputs:
+  BookingsTableName:
+    Description: Name of the bookings DynamoDB table
+    Value: !Ref BookingsTable
+
+  DalUsersTableName:
+    Description: Name of the DalUsers DynamoDB table
+    Value: !Ref DalUsersTable
+
+  LoginStatsTableName:
+    Description: Name of the loginStats DynamoDB table
+    Value: !Ref LoginStatsTable
+
+  ReviewsTableName:
+    Description: Name of the reviews DynamoDB table
+    Value: !Ref ReviewsTable
+
+  RoomsTableName:
+    Description: Name of the rooms DynamoDB table
+    Value: !Ref RoomsTable
+
+  ChatTableName:
+    Description: Name of the chat DynamoDB table
+    Value: !Ref ChatTable
+
+  BookingNotificationsTopicArn:
+    Description: ARN of the SNS topic for booking notifications
+    Value: !Ref BookingNotificationsTopic
+
+  BookingLexBotAliasArn:
+    Description: ARN of the Lex Bot Alias
+    Value: !Ref BookingLexBotAlias
+
+  ChatWebSocketAPIId:
+    Description: ID of the WebSocket API
+    Value: !Ref ChatWebSocketAPI

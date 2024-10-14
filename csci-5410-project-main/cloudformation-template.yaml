@@ -1,0 +1,68 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  UserNotificationTopic1:
+    Type: 'AWS::SNS::Topic'
+    Properties:
+      TopicName: 'UserNotificationTopic1'
+
+  RoomBookingRequestTopic1:
+    Type: 'AWS::SNS::Topic'
+    Properties:
+      TopicName: 'RoomBookingRequestTopic1'
+
+  RoomBookingRequestQueue1:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      QueueName: 'RoomBookingRequestQueue1'
+      RedrivePolicy:
+        deadLetterTargetArn:
+          !GetAtt DeadLetterQueue1.Arn
+        maxReceiveCount: 1
+
+  DeadLetterQueue1:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      QueueName: 'DeadLetterQueue1'
+
+  RoomBookingRequestSubscription1:
+    Type: 'AWS::SNS::Subscription'
+    Properties:
+      Endpoint: !GetAtt RoomBookingRequestQueue1.Arn
+      Protocol: sqs
+      TopicArn: !Ref RoomBookingRequestTopic1
+
+
+  BookingApprovalLambdaFunction1:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      FunctionName: 'BookingApprovalLambdaFunction1'
+      Handler: 'index.handler'
+      Role: 'arn:aws:iam::817321140247:role/LabRole'
+      Code:
+        S3Bucket: 'profile-photos-bucket'
+        S3Key: 'booking-approval-lambda.zip'
+      Runtime: 'nodejs20.x'
+      Environment:
+        Variables:
+          USER_NOTIFICATION_TOPIC_ARN: !Ref UserNotificationTopic1
+
+  reserveRoom:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      FunctionName: 'ReserveRoomLambdaFunction1'
+      Handler: 'lambda_function.lambda_handler'  # Update to match your file and function name
+      Role: 'arn:aws:iam::817321140247:role/LabRole'
+      Code:
+        S3Bucket: 'profile-photos-bucket'
+        S3Key: 'reserve-room-lambda.zip'
+      Runtime: 'python3.8'
+      Environment:
+        Variables:
+          SNS_TOPIC_ARN: !Ref RoomBookingRequestTopic1
+
+  BookingApprovalLambdaTrigger1:
+    Type: 'AWS::Lambda::EventSourceMapping'
+    Properties:
+      EventSourceArn: !GetAtt RoomBookingRequestQueue1.Arn
+      FunctionName: !GetAtt BookingApprovalLambdaFunction1.Arn
+      Enabled: true
